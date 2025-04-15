@@ -1,5 +1,5 @@
 {
-  "address": "coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF",
+  "address": "Fmcb3arTrfLuJnzfLA6JeHhX93DKe63CuLBQMLcQnvDq",
   "metadata": {
     "name": "tokenvesting",
     "version": "0.1.0",
@@ -82,6 +82,7 @@
         },
         {
           "name": "mint",
+          "writable": true,
           "relations": [
             "vesting_account"
           ]
