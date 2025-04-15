@@ -1,6 +1,15 @@
 #![allow(clippy::result_large_err)]
+pub mod constants;
+pub mod errors;
+pub mod instructions;
+pub mod states;
 
 use anchor_lang::prelude::*;
+
+pub use constants::*;
+pub use errors::*;
+pub use instructions::*;
+pub use states::*;
 
 declare_id!("coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF");
 
@@ -8,63 +17,31 @@ declare_id!("coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF");
 pub mod tokenvesting {
     use super::*;
 
-  pub fn close(_ctx: Context<CloseTokenvesting>) -> Result<()> {
-    Ok(())
-  }
+    pub fn create_vesting_account(
+        ctx: Context<CreateVestingAccount>,
+        company_name: String,
+    ) -> Result<()> {
+        create_vesting_account::create_vesting(ctx, company_name)
+    }
 
-  pub fn decrement(ctx: Context<Update>) -> Result<()> {
-    ctx.accounts.tokenvesting.count = ctx.accounts.tokenvesting.count.checked_sub(1).unwrap();
-    Ok(())
-  }
+    pub fn create_employee_account(
+        ctx: Context<CreateEmployeeAccount>,
+        // beneficiary: Pubkey,
+        start_time: i64,
+        end_time: i64,
+        cliff_time: i64,
+        total_amount: u64,
+    ) -> Result<()> {
+        create_employee_account::create_employee(
+            ctx,
+            start_time,
+            end_time,
+            cliff_time,
+            total_amount,
+        )
+    }
 
-  pub fn increment(ctx: Context<Update>) -> Result<()> {
-    ctx.accounts.tokenvesting.count = ctx.accounts.tokenvesting.count.checked_add(1).unwrap();
-    Ok(())
-  }
-
-  pub fn initialize(_ctx: Context<InitializeTokenvesting>) -> Result<()> {
-    Ok(())
-  }
-
-  pub fn set(ctx: Context<Update>, value: u8) -> Result<()> {
-    ctx.accounts.tokenvesting.count = value.clone();
-    Ok(())
-  }
-}
-
-#[derive(Accounts)]
-pub struct InitializeTokenvesting<'info> {
-  #[account(mut)]
-  pub payer: Signer<'info>,
-
-  #[account(
-  init,
-  space = 8 + Tokenvesting::INIT_SPACE,
-  payer = payer
-  )]
-  pub tokenvesting: Account<'info, Tokenvesting>,
-  pub system_program: Program<'info, System>,
-}
-#[derive(Accounts)]
-pub struct CloseTokenvesting<'info> {
-  #[account(mut)]
-  pub payer: Signer<'info>,
-
-  #[account(
-  mut,
-  close = payer, // close account and return lamports to payer
-  )]
-  pub tokenvesting: Account<'info, Tokenvesting>,
-}
-
-#[derive(Accounts)]
-pub struct Update<'info> {
-  #[account(mut)]
-  pub tokenvesting: Account<'info, Tokenvesting>,
-}
-
-#[account]
-#[derive(InitSpace)]
-pub struct Tokenvesting {
-  count: u8,
+    pub fn claim_tokens_vesting(ctx: Context<ClaimTokens>, company_name: String) -> Result<()> {
+        claim_tokens::claim_tokens(ctx, company_name)
+    }
 }
