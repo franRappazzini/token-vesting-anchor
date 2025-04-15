@@ -14,7 +14,7 @@ pub struct ClaimTokens<'info> {
         seeds = [b"employee_vesting", beneficiary.key().as_ref(), vesting_account.key().as_ref()],
         bump = employee_account.bump,
         has_one = beneficiary,
-        has_one = vesting_account
+        has_one = vesting_account   
     )]
     pub employee_account: Account<'info, EmployeeAccount>,
 
@@ -27,7 +27,7 @@ pub struct ClaimTokens<'info> {
     )]
     pub vesting_account: Account<'info, VestingAccount>,    
     
-    #[account()]
+    #[account(mut)]
     pub mint: InterfaceAccount<'info, Mint>,
 
     #[account(mut)]

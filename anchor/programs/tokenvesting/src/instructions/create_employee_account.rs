@@ -9,17 +9,17 @@ pub struct CreateEmployeeAccount<'info> {
     pub beneficiary: SystemAccount<'info>, // employee
 
     #[account(
-        has_one = owner // especie de modifier => verifica que owner (de vesting_account) == owner (signer)
-    )]
+            has_one = owner // especie de modifier => verifica que owner (de vesting_account) == owner (signer)
+        )]
     pub vesting_account: Account<'info, VestingAccount>,
 
     #[account(
-        init,
-        payer = owner,
-        space = EmployeeAccount::INIT_SPACE + ANCHOR_DISCRIMINATOR,
-        seeds = [b"employee_vesting", beneficiary.key().as_ref(), vesting_account.key().as_ref()],
-        bump
-    )]
+            init,
+            payer = owner,
+            space = EmployeeAccount::INIT_SPACE + ANCHOR_DISCRIMINATOR,
+            seeds = [b"employee_vesting", beneficiary.key().as_ref(), vesting_account.key().as_ref()],
+            bump
+        )]
     pub employee_account: Account<'info, EmployeeAccount>,
 
     pub system_program: Program<'info, System>,
