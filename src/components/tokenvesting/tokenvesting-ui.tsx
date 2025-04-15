@@ -1,40 +1,80 @@
-'use client'
+"use client";
 
-import { Keypair, PublicKey } from '@solana/web3.js'
-import { useMemo } from 'react'
-import { ellipsify } from '../ui/ui-layout'
-import { ExplorerLink } from '../cluster/cluster-ui'
-import { useTokenvestingProgram, useTokenvestingProgramAccount } from './tokenvesting-data-access'
+import { Keypair, PublicKey } from "@solana/web3.js";
+import { useMemo, useState } from "react";
+import { useTokenvestingProgram, useTokenvestingProgramAccount } from "./tokenvesting-data-access";
+
+import { ExplorerLink } from "../cluster/cluster-ui";
+import { ellipsify } from "../ui/ui-layout";
+import { useWallet } from "@solana/wallet-adapter-react";
+
+interface CreateEmployeeAccoutInitialParams {
+  startTime: number;
+  endTime: number;
+  cliffTime: number;
+  totalAmount: number;
+  beneficiary: string;
+  // mint?: string;
+}
 
 export function TokenvestingCreate() {
-  const { initialize } = useTokenvestingProgram()
+  const { createVestingAccount } = useTokenvestingProgram();
+  const [companyName, setCompanyName] = useState("");
+  const [mint, setMint] = useState("");
+  const { publicKey } = useWallet();
+
+  const handleSubmit = () => createVestingAccount.mutateAsync({ companyName, mint });
 
   return (
-    <button
-      className="btn btn-xs lg:btn-md btn-primary"
-      onClick={() => initialize.mutateAsync(Keypair.generate())}
-      disabled={initialize.isPending}
-    >
-      Create {initialize.isPending && '...'}
-    </button>
-  )
+    <section className="card card-bordered border-base-300 border-4 text-neutral-content">
+      <div className="card-body items-center text-center">
+        <h2 className="card-title">Create Tokenvesting Account</h2>
+        <div className="space-y-4">
+          <input
+            type="text"
+            placeholder="Company Name"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            className="input input-bordered w-full max-w-xs"
+          />
+          <input
+            type="text"
+            placeholder="Mint Address"
+            value={mint}
+            onChange={(e) => setMint(e.target.value)}
+            className="input input-bordered w-full max-w-xs"
+          />
+          <button
+            className="btn btn-xs lg:btn-md btn-outline"
+            onClick={handleSubmit}
+            disabled={createVestingAccount.isPending}
+          >
+            Create
+          </button>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 export function TokenvestingList() {
-  const { accounts, getProgramAccount } = useTokenvestingProgram()
+  const { accounts, getProgramAccount } = useTokenvestingProgram();
 
   if (getProgramAccount.isLoading) {
-    return <span className="loading loading-spinner loading-lg"></span>
+    return <span className="loading loading-spinner loading-lg"></span>;
   }
   if (!getProgramAccount.data?.value) {
     return (
       <div className="alert alert-info flex justify-center">
-        <span>Program account not found. Make sure you have deployed the program and are on the correct cluster.</span>
+        <span>
+          Program account not found. Make sure you have deployed the program and are on the correct
+          cluster.
+        </span>
       </div>
-    )
+    );
   }
   return (
-    <div className={'space-y-6'}>
+    <div className={"space-y-6"}>
       {accounts.isLoading ? (
         <span className="loading loading-spinner loading-lg"></span>
       ) : accounts.data?.length ? (
@@ -45,28 +85,54 @@ export function TokenvestingList() {
         </div>
       ) : (
         <div className="text-center">
-          <h2 className={'text-2xl'}>No accounts</h2>
+          <h2 className={"text-2xl"}>No accounts</h2>
           No accounts found. Create one above to get started.
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function TokenvestingCard({ account }: { account: PublicKey }) {
-  const { accountQuery, incrementMutation, setMutation, decrementMutation, closeMutation } = useTokenvestingProgramAccount({
-    account,
-  })
+  const { accountQuery, createEmployeeAccount, claimTokensVesting } = useTokenvestingProgramAccount(
+    {
+      account,
+    }
+  );
+  const [initialParams, setInitialParams] = useState<CreateEmployeeAccoutInitialParams>({
+    startTime: 0,
+    endTime: 0,
+    cliffTime: 0,
+    totalAmount: 0,
+    beneficiary: "",
+  });
 
-  const count = useMemo(() => accountQuery.data?.count ?? 0, [accountQuery.data?.count])
+  const companyName = useMemo(
+    () => accountQuery.data?.companyName ?? 0,
+    [accountQuery.data?.companyName]
+  );
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setInitialParams((prev) => ({
+      ...prev,
+      [name]: name === "totalAmount" ? parseInt(value) : value,
+    }));
+  };
+  const handleSubmit = () => createEmployeeAccount.mutateAsync({ ...initialParams });
+  const handleClaim = () => claimTokensVesting.mutateAsync({ companyName: companyName.toString() });
 
   return accountQuery.isLoading ? (
     <span className="loading loading-spinner loading-lg"></span>
   ) : (
-    <div className="card card-bordered border-base-300 border-4 text-neutral-content">
-      <div className="card-body items-center text-center">
-        <div className="space-y-6">
-          <h2 className="card-title justify-center text-3xl cursor-pointer" onClick={() => accountQuery.refetch()}>
+    <section>
+      <div className="card card-bordered border-base-300 border-4 text-neutral-content">
+        <div className="card-body items-center text-center">
+          <div className="space-y-6">
+            {/*    <h2
+            className="card-title justify-center text-3xl cursor-pointer"
+            onClick={() => accountQuery.refetch()}
+          >
             {count}
           </h2>
           <div className="card-actions justify-around">
@@ -80,11 +146,11 @@ function TokenvestingCard({ account }: { account: PublicKey }) {
             <button
               className="btn btn-xs lg:btn-md btn-outline"
               onClick={() => {
-                const value = window.prompt('Set value to:', count.toString() ?? '0')
+                const value = window.prompt("Set value to:", count.toString() ?? "0");
                 if (!value || parseInt(value) === count || isNaN(parseInt(value))) {
-                  return
+                  return;
                 }
-                return setMutation.mutateAsync(parseInt(value))
+                return setMutation.mutateAsync(parseInt(value));
               }}
               disabled={setMutation.isPending}
             >
@@ -105,18 +171,89 @@ function TokenvestingCard({ account }: { account: PublicKey }) {
             <button
               className="btn btn-xs btn-secondary btn-outline"
               onClick={() => {
-                if (!window.confirm('Are you sure you want to close this account?')) {
-                  return
+                if (!window.confirm("Are you sure you want to close this account?")) {
+                  return;
                 }
-                return closeMutation.mutateAsync()
+                return closeMutation.mutateAsync();
               }}
               disabled={closeMutation.isPending}
             >
               Close
             </button>
+          </div> */}
+
+            <h2
+              className="card-title justify-center text-3xl cursor-pointer"
+              onClick={() => accountQuery.refetch()}
+            >
+              {companyName}
+            </h2>
+
+            <h2 className="card-title">Create Employee Account</h2>
+
+            <div className="space-y-4">
+              <input
+                type="text"
+                name="startTime"
+                placeholder="Start Time"
+                value={initialParams.startTime}
+                onChange={handleChange}
+                className="input input-bordered w-full max-w-xs"
+              />
+              <input
+                type="text"
+                name="endTime"
+                placeholder="End Time"
+                value={initialParams.endTime}
+                onChange={handleChange}
+                className="input input-bordered w-full max-w-xs"
+              />
+              <input
+                type="text"
+                name="cliffTime"
+                placeholder="Cliff Time"
+                value={initialParams.cliffTime}
+                onChange={handleChange}
+                className="input input-bordered w-full max-w-xs"
+              />
+              <input
+                type="text"
+                name="totalAmount"
+                placeholder="Total Amount"
+                value={initialParams.totalAmount}
+                onChange={handleChange}
+                className="input input-bordered w-full max-w-xs"
+              />
+              <input
+                type="text"
+                name="beneficiary"
+                placeholder="Beneficiary Address"
+                value={initialParams.beneficiary}
+                onChange={handleChange}
+                className="input input-bordered w-full max-w-xs"
+              />
+              <button
+                className="btn btn-xs lg:btn-md btn-outline"
+                onClick={handleSubmit}
+                disabled={createEmployeeAccount.isPending}
+              >
+                Create Employee Account
+              </button>
+            </div>
           </div>
         </div>
+
+        <div className="space-y-6">
+          <h2 className="card-title">Check Claim Tokens</h2>
+          <button
+            className="btn btn-xs lg:btn-md btn-outline"
+            onClick={handleClaim}
+            disabled={claimTokensVesting.isPending}
+          >
+            Claim Tokens
+          </button>
+        </div>
       </div>
-    </div>
-  )
+    </section>
+  );
 }

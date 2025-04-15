@@ -1,22 +1,23 @@
-'use client'
+"use client";
 
-import { useWallet } from '@solana/wallet-adapter-react'
-import { WalletButton } from '../solana/solana-provider'
-import { AppHero, ellipsify } from '../ui/ui-layout'
-import { ExplorerLink } from '../cluster/cluster-ui'
-import { useTokenvestingProgram } from './tokenvesting-data-access'
-import { TokenvestingCreate, TokenvestingList } from './tokenvesting-ui'
+import { AppHero, ellipsify } from "../ui/ui-layout";
+import { TokenvestingCreate, TokenvestingList } from "./tokenvesting-ui";
+
+import { ExplorerLink } from "../cluster/cluster-ui";
+import { WalletButton } from "../solana/solana-provider";
+import { useTokenvestingProgram } from "./tokenvesting-data-access";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 export default function TokenvestingFeature() {
-  const { publicKey } = useWallet()
-  const { programId } = useTokenvestingProgram()
+  const { publicKey } = useWallet();
+  const { programId } = useTokenvestingProgram();
 
   return publicKey ? (
     <div>
       <AppHero
-        title="Tokenvesting"
+        title="Token Vesting Program"
         subtitle={
-          'Create a new account by clicking the "Create" button. The state of a account is stored on-chain and can be manipulated by calling the program\'s methods (increment, decrement, set, and close).'
+          "Tokenvesting is a smart contract that allows you to create vesting accounts for your employees."
         }
       >
         <p className="mb-6">
@@ -34,5 +35,5 @@ export default function TokenvestingFeature() {
         </div>
       </div>
     </div>
-  )
+  );
 }
