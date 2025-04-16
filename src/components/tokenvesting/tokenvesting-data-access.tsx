@@ -64,6 +64,7 @@ export function useTokenvestingProgram() {
     },
     onError: () => toast.error("Failed to initialize account"),
   }); */
+
   const createVestingAccount = useMutation<string, Error, CreateVestingAccountArgs>({
     mutationKey: ["tokenvesting", "create vesting account", { cluster }],
     mutationFn: ({ companyName, mint }) =>

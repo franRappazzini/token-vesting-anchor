@@ -1,12 +1,11 @@
 "use client";
 
-import { Keypair, PublicKey } from "@solana/web3.js";
 import { useMemo, useState } from "react";
 import { useTokenvestingProgram, useTokenvestingProgramAccount } from "./tokenvesting-data-access";
 
-import { ExplorerLink } from "../cluster/cluster-ui";
-import { ellipsify } from "../ui/ui-layout";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { PublicKey } from "@solana/web3.js";
+import { TOKENVESTING_PROGRAM_ID } from "@project/anchor";
+import { web3 } from "@coral-xyz/anchor";
 
 interface CreateEmployeeAccoutInitialParams {
   startTime: number;
@@ -21,7 +20,6 @@ export function TokenvestingCreate() {
   const { createVestingAccount } = useTokenvestingProgram();
   const [companyName, setCompanyName] = useState("");
   const [mint, setMint] = useState("");
-  const { publicKey } = useWallet();
 
   const handleSubmit = () => createVestingAccount.mutateAsync({ companyName, mint });
 
@@ -59,6 +57,24 @@ export function TokenvestingCreate() {
 
 export function TokenvestingList() {
   const { accounts, getProgramAccount } = useTokenvestingProgram();
+
+  const [treasuryTokenAccount] = web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("vesting_treasury"), Buffer.from("FrancisCompany")],
+    TOKENVESTING_PROGRAM_ID
+  );
+
+  console.log("treasuryTokenAccount", treasuryTokenAccount.toString());
+
+  // console.log(
+  //   TOKEN_PROGRAM_ID.toString(),
+  //   "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+  //   TOKEN_PROGRAM_ID.toString() === "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+  // );
+  // console.log(
+  //   TOKENVESTING_PROGRAM_ID.toString(),
+  //   "Fmcb3arTrfLuJnzfLA6JeHhX93DKe63CuLBQMLcQnvDq",
+  //   TOKENVESTING_PROGRAM_ID.toString() === "Fmcb3arTrfLuJnzfLA6JeHhX93DKe63CuLBQMLcQnvDq"
+  // );
 
   if (getProgramAccount.isLoading) {
     return <span className="loading loading-spinner loading-lg"></span>;
